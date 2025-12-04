@@ -1,0 +1,6 @@
+﻿services:
+  systemmonitor:
+    image: systemmonitor
+    build:
+      context: .
+      dockerfile: SystemMonitor/Dockerfile
