@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,21 +12,16 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddData(this IServiceCollection services, IConfiguration configuration)
     {
-        var connectionString = configuration.GetConnectionString("DefaultConnection");
+        services.AddDbContext<ApplicationContext>(options =>
+        {
+            options.UseSqlite(configuration.GetConnectionString("DefaultConnection"));
 
-        services
-            .AddDbContext<ApplicationContext>(options => options.UseSqlite(connectionString))
-            .AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
-            .AddEntityFrameworkStores<ApplicationContext>();
-
-        // TODO: In development only?
-        services.AddDatabaseDeveloperPageExceptionFilter();
+            options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+        });
 
         services.AddScoped<IEventRepository, EventRepository>();
 
-        services.AddScoped<IUserRepository, UserRepository>();
-
-        services.AddScoped<IApplicationContext>(provider => provider.GetRequiredService<ApplicationContext>());
+        services.AddScoped<IApplicationContext>(x => x.GetRequiredService<ApplicationContext>());
 
         return services;
     }

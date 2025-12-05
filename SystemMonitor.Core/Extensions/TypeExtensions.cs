@@ -4,7 +4,7 @@ namespace SystemMonitor.Core.Extensions;
 
 internal static class TypeExtensions
 {
-    public static bool InheritsFromCommandHandler(this Type type)
+    public static bool IsCommandHandler(this Type type)
     {
         var baseType = type.BaseType;
 
@@ -26,7 +26,7 @@ internal static class TypeExtensions
         return false;
     }
 
-    public static bool InheritsFromQueryHandler(this Type type)
+    public static bool IsQueryHandler(this Type type)
     {
         var baseType = type.BaseType;
 

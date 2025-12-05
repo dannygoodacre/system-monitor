@@ -5,6 +5,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{76EDBAA6-9052-43F1-BAFE-48DE93B28C20}"
 	ProjectSection(SolutionItems) = preProject
 		compose.yaml = compose.yaml
+		.env = .env
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SystemMonitor.Data", "SystemMonitor.Data\SystemMonitor.Data.csproj", "{1414EF71-54AD-40E8-A883-87610CFDD424}"
@@ -19,9 +20,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SystemMonitor.Email", "Syst
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SystemMonitor.Configuration", "SystemMonitor.Configuration\SystemMonitor.Configuration.csproj", "{95C55E13-C096-4C0E-AEE7-1FF057F87276}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SystemMonitor.Domain", "SystemMonitor.Domain\SystemMonitor.Domain.csproj", "{8567AD15-4827-42B5-A878-0424E4B0645E}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SystemMonitor.Bash", "SystemMonitor.Bash\SystemMonitor.Bash.csproj", "{E3637F61-7156-455C-BCDF-232A505D4C99}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SystemMonitor.Domain", "SystemMonitor.Domain\SystemMonitor.Domain.csproj", "{947D7A17-1692-4F3E-981D-38B58234891E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -57,14 +58,14 @@ Global
 		{95C55E13-C096-4C0E-AEE7-1FF057F87276}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{95C55E13-C096-4C0E-AEE7-1FF057F87276}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{95C55E13-C096-4C0E-AEE7-1FF057F87276}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8567AD15-4827-42B5-A878-0424E4B0645E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8567AD15-4827-42B5-A878-0424E4B0645E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8567AD15-4827-42B5-A878-0424E4B0645E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8567AD15-4827-42B5-A878-0424E4B0645E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E3637F61-7156-455C-BCDF-232A505D4C99}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{E3637F61-7156-455C-BCDF-232A505D4C99}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E3637F61-7156-455C-BCDF-232A505D4C99}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E3637F61-7156-455C-BCDF-232A505D4C99}.Release|Any CPU.Build.0 = Release|Any CPU
+		{947D7A17-1692-4F3E-981D-38B58234891E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{947D7A17-1692-4F3E-981D-38B58234891E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{947D7A17-1692-4F3E-981D-38B58234891E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{947D7A17-1692-4F3E-981D-38B58234891E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 	EndGlobalSection

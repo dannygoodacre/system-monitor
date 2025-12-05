@@ -1,12 +1,10 @@
-using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SystemMonitor.Application.Abstractions.Services;
 using Resend;
-using SystemMonitor.Email;
 
 // ReSharper disable once CheckNamespace
-namespace RaidMonitor.Email;
+namespace SystemMonitor.Email;
 
 public static class ServiceCollectionExtensions
 {
@@ -18,8 +16,6 @@ public static class ServiceCollectionExtensions
         {
             x.ApiToken = configuration["Email:ApiToken"] ?? throw new InvalidOperationException("ApiToken is missing");
         });
-
-        services.AddTransient<IEmailSender, EmailSender>();
 
         services.AddTransient<IResend, ResendClient>();
 

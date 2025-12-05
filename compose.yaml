@@ -4,3 +4,12 @@
     build:
       context: .
       dockerfile: SystemMonitor/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - Email__ApiToken=${API_TOKEN}
+      - Email__From=${EMAIL_FROM}
+      - Contact__EmailAddress=${CONTACT_EMAIL}
+      - Contact__PhoneNumber=${PHONE_NUMBER}
+      - ConnectionStrings__DefaultConnection=Data Source=/app/data/systemmonitor.db;Cache=Shared
+    volumes:
+      - ./data:/app/data

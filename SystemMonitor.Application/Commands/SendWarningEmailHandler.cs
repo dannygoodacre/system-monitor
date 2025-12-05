@@ -1,6 +1,5 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using SystemMonitor.Application.Abstractions.Data;
 using SystemMonitor.Application.Abstractions.Data.Repositories;
 using SystemMonitor.Application.Abstractions.Services;
 using SystemMonitor.Configuration.Options;
@@ -10,11 +9,9 @@ using SystemMonitor.Core.Common;
 namespace SystemMonitor.Application.Commands;
 
 internal sealed class SendWarningEmailHandler(ILogger<SendWarningEmailHandler> logger,
-                                              IOptions<EmailOptions> options,
+                                              IOptions<ContactOptions> options,
                                               IEmailService emailService,
-                                              IUserRepository userRepository,
-                                              IEventRepository eventRepository,
-                                              IApplicationContext context) : CommandHandler<SendWarningEmailCommand>(logger), ISendWarningEmail
+                                              IEventRepository eventRepository) : CommandHandler<SendWarningEmailCommand>(logger), ISendWarningEmail
 {
     protected override string CommandName => "Send Warning Email";
 
@@ -29,41 +26,11 @@ internal sealed class SendWarningEmailHandler(ILogger<SendWarningEmailHandler> l
             return Result.InternalError("No event found.");
         }
 
-        List<string> emails;
+        var message = $"Issue detected for resource '{@event.Resource}':<br><pre><code>{@event.Status}</code></pre>";
 
-        var users = await userRepository.GetAllAsync(cancellationToken);
+        await emailService.SendEmailAsync(options.Value.EmailAddress, $"System issue detected: {@event.Resource}", message);
 
-        if (users.Count != 0)
-        {
-            emails = users.Select(x => x.Email).ToList();
-        }
-        else
-        {
-            logger.LogWarning("Command '{Command}' found no users to contact; using backup email '{BackupEmail}' instead.", CommandName, options.Value.BackupEmail);
-
-            emails = [ options.Value.BackupEmail ];
-        }
-
-        var message = $"Issue detected for resource '{@event.Resource}':<br><pre><code>{@event.Message}</code></pre>";
-
-        // foreach (var email in emails)
-        // {
-        //     await emailService.SendEmailAsync(email, options.Value.Subject, message);
-        // }
-
-        // TODO: @event is a model, need to map back to entity or just use the underlying entity.
-        @event.UsersNotifiedIds = users.Select(x => x.Id).ToList();
-
-        const int expectedChanges = 0;
-
-        var actualChanges = await context.SaveChangesAsync();
-
-        if (expectedChanges != actualChanges)
-        {
-            logger.LogWarning("Command '{Command}' wrote an unexpected number of changes to the database: expected '{Expected}', actual '{Actual}'.", CommandName, expectedChanges, actualChanges);
-        }
-
-        logger.LogInformation("Command '{Command}' completed, sending an email to: {Recipients}.", CommandName, string.Join(", ", emails));
+        logger.LogInformation("Command '{Command}' completed, sending an email to: {Recipients}.", CommandName, options.Value.EmailAddress);
 
         return Result.Success();
     }
@@ -75,12 +42,12 @@ internal sealed class SendWarningEmailHandler(ILogger<SendWarningEmailHandler> l
         }, cancellationToken);
 }
 
-public sealed class SendWarningEmailCommand : ICommand
-{
-    public required string Resource { get; init; }
-}
-
 public interface ISendWarningEmail
 {
     Task<Result> ExecuteAsync(string resource, CancellationToken cancellationToken = default);
+}
+
+public sealed class SendWarningEmailCommand : ICommand
+{
+    public required string Resource { get; init; }
 }

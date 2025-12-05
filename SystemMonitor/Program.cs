@@ -1,34 +1,32 @@
-using RaidMonitor.Email;
 using SystemMonitor.Application;
 using SystemMonitor.Bash;
-using SystemMonitor.Core;
-using SystemMonitor.Data;
 using SystemMonitor.Configuration;
+using SystemMonitor.Data;
+using SystemMonitor.Email;
 
 namespace SystemMonitor;
 
 public class Program
 {
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
 
         builder.Configuration
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-            .AddUserSecrets<Program>();
+            .AddEnvironmentVariables();
+
+        if (builder.Environment.IsDevelopment())
+        {
+            builder.Configuration.AddUserSecrets<Program>();
+        }
 
         builder.Services.AddOptions(builder.Configuration);
 
-        // Add services to the container.
-        builder.Services.AddRazorPages();
-
         builder.Services.AddData(builder.Configuration);
 
-        builder.Services.AddCommandHandlers();
-        builder.Services.AddQueryHandlers();
-
-        builder.Services.AddEmailServices(builder.Configuration);
         builder.Services.AddBashService();
+        builder.Services.AddEmailServices(builder.Configuration);
 
         builder.Services.AddApplication();
 
@@ -48,16 +46,17 @@ public class Program
             app.UseHsts();
         }
 
+        using (var scope = app.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<ApplicationContext>();
+
+            await context.Database.EnsureCreatedAsync();
+        }
+
         app.UseHttpsRedirection();
 
         app.UseRouting();
 
-        app.UseAuthorization();
-
-        app.MapStaticAssets();
-        app.MapRazorPages()
-            .WithStaticAssets();
-
-        app.Run();
+        await app.RunAsync();
     }
 }

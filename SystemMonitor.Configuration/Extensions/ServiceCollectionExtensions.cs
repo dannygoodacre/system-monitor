@@ -18,6 +18,13 @@ public static class ServiceCollectionExtensions
 
         services.AddSingleton<IValidateOptions<EmailOptions>, EmailOptionsValidator>();
 
+        services
+            .AddOptions<ContactOptions>()
+            .Bind(configuration.GetSection("Contact"))
+            .ValidateOnStart();
+
+        services.AddSingleton<IValidateOptions<ContactOptions>, ContactOptionsValidator>();
+
         return services;
     }
 }

@@ -11,21 +11,10 @@
       <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.0" />
       <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.0"/>
       <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.0"/>
-      <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="10.0.0"/>
-    </ItemGroup>
-
-    <ItemGroup>
-      <Reference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore">
-        <HintPath>..\..\..\.nuget\packages\microsoft.aspnetcore.identity.entityframeworkcore\10.0.0\lib\net10.0\Microsoft.AspNetCore.Identity.EntityFrameworkCore.dll</HintPath>
-      </Reference>
-      <Reference Include="Microsoft.EntityFrameworkCore">
-        <HintPath>..\..\..\.nuget\packages\microsoft.entityframeworkcore\10.0.0\lib\net10.0\Microsoft.EntityFrameworkCore.dll</HintPath>
-      </Reference>
     </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\SystemMonitor.Application.Abstractions\SystemMonitor.Application.Abstractions.csproj" />
-      <ProjectReference Include="..\SystemMonitor.Domain\SystemMonitor.Domain.csproj" />
     </ItemGroup>
 
 </Project>

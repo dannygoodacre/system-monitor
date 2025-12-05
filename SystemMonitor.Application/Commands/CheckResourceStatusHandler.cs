@@ -4,14 +4,15 @@ using SystemMonitor.Application.Abstractions.Data.Repositories;
 using SystemMonitor.Application.Resources;
 using SystemMonitor.Core.CommandQuery;
 using SystemMonitor.Core.Common;
-using SystemMonitor.Domain.Models;
+using SystemMonitor.Domain.Entities;
 
 namespace SystemMonitor.Application.Commands;
 
-public class CheckResourceStatusHandler(ILogger<CheckResourceStatusHandler> logger,
-                                               IResource resource,
-                                               IEventRepository repository,
-                                               IApplicationContext context) : CommandHandler<CheckResourceStatusCommand>(logger), ICheckResourceStatus
+internal sealed class CheckResourceStatusHandler(ILogger<CheckResourceStatusHandler> logger,
+                                                 IResource resource,
+                                                 IEventRepository eventRepository,
+                                                 ILastStatusRepository lastStatusRepository,
+                                                 IApplicationContext context) : CommandHandler<CheckResourceStatusCommand>(logger), ICheckResourceStatus
 {
     public int FrequencyInSeconds => resource.CheckFrequencyInSeconds;
 
@@ -21,18 +22,29 @@ public class CheckResourceStatusHandler(ILogger<CheckResourceStatusHandler> logg
 
     protected override async Task<Result> InternalExecuteAsync(CheckResourceStatusCommand command, CancellationToken cancellationToken)
     {
-        if (await resource.IsOkayAsync(cancellationToken))
+        var currentStatus = await resource.IsOkayAsync(cancellationToken);
+
+        if (currentStatus)
         {
+            return Result.Success();
+        }
+
+        var lastStatus = await lastStatusRepository.GetAsync(resource.Name, cancellationToken);
+
+        if (lastStatus is null || !currentStatus)
+        {
+            // No last status yet recorded or the resource is still in a bad state.
+
             return Result.Success();
         }
 
         var message = await resource.GetStatusInformationAsync(cancellationToken);
 
-        repository.Add(new Event
+        eventRepository.Add(new Event
         {
             Resource = resource.Name,
             LoggedAt = DateTime.UtcNow,
-            Message = message
+            Status = message
         });
 
         const int expectedChanges = 1;

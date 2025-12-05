@@ -1,4 +1,5 @@
-using SystemMonitor.Domain.Models;
+
+using SystemMonitor.Domain.Entities;
 
 namespace SystemMonitor.Application.Abstractions.Data.Repositories;
 

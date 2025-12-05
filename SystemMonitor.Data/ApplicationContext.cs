@@ -1,18 +1,21 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.Data.Sqlite;
+﻿using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
 using SystemMonitor.Application.Abstractions.Data;
-using SystemMonitor.Data.Entities;
+using SystemMonitor.Domain.Entities;
 
 namespace SystemMonitor.Data;
 
-public class ApplicationContext(DbContextOptions<ApplicationContext> options) : IdentityDbContext(options), IApplicationContext
+public class ApplicationContext(DbContextOptions<ApplicationContext> options) : DbContext(options), IApplicationContext
 {
     public DbSet<Event> Events { get; set; }
 
+    public DbSet<LastStatus> LastStatuses { get; set; }
+
     public Task<int> SaveChangesAsync() => base.SaveChangesAsync();
+
+    public Task MigrateAsync() => Database.MigrateAsync();
 }
 
 internal class ApplicationContextFactory : IDesignTimeDbContextFactory<ApplicationContext>

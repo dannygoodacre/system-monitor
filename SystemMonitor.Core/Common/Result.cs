@@ -17,8 +17,6 @@ public class Result
 
     public bool IsSuccess => Status == Status.Success;
 
-    public bool IsNonDomainError => Status != Status.Success && Status != Status.DomainError;
-
     public static Result Success()
         => new()
         {

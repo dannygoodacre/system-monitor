@@ -1,41 +1,40 @@
 using SystemMonitor.Application.Commands;
+using SystemMonitor.Core.Common;
 
 namespace SystemMonitor;
 
 public class ResourceMonitorService(ILogger logger,
-                                    ICheckResourceStatus monitorStrategy,
+                                    ICheckResourceStatus checkResourceStatus,
                                     ISendWarningEmail sendWarningEmail) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
         while (!cancellationToken.IsCancellationRequested)
         {
-            var result = await monitorStrategy.ExecuteAsync(cancellationToken);
+            var statusResult = await checkResourceStatus.ExecuteAsync(cancellationToken);
 
-            if (result.IsNonDomainError)
+            if (statusResult.IsSuccess)
             {
-                logger.LogCritical("Could not verify the state of the resource '{Resource}'.", monitorStrategy.ResourceName);
-
-                await Task.Delay(TimeSpan.FromSeconds(monitorStrategy.FrequencyInSeconds), cancellationToken);
+                await Task.Delay(TimeSpan.FromSeconds(checkResourceStatus.FrequencyInSeconds), cancellationToken);
 
                 continue;
             }
 
-            if (result.IsSuccess)
+            if (statusResult.Status == Status.DomainError)
             {
-                await Task.Delay(TimeSpan.FromSeconds(monitorStrategy.FrequencyInSeconds), cancellationToken);
+                var sendEmailResult = await sendWarningEmail.ExecuteAsync(checkResourceStatus.ResourceName, cancellationToken);
 
-                continue;
+                if (!sendEmailResult.IsSuccess)
+                {
+                    logger.LogCritical("Could not send a warning email for the resource '{Resource}'.", checkResourceStatus.ResourceName);
+                }
+            }
+            else
+            {
+                logger.LogCritical("Could not verify the state of the resource '{Resource}'.", checkResourceStatus.ResourceName);
             }
 
-            var sendEmailResult = await sendWarningEmail.ExecuteAsync(monitorStrategy.ResourceName, cancellationToken);
-
-            if (!sendEmailResult.IsSuccess)
-            {
-                logger.LogCritical("Could not send a warning email for the resource '{Resource}'.", monitorStrategy.ResourceName);
-            }
-
-            await Task.Delay(TimeSpan.FromSeconds(monitorStrategy.FrequencyInSeconds), cancellationToken);
+            await Task.Delay(TimeSpan.FromSeconds(checkResourceStatus.FrequencyInSeconds), cancellationToken);
         }
     }
 }
