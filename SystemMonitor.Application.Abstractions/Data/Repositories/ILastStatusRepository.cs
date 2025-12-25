@@ -4,7 +4,7 @@ namespace SystemMonitor.Application.Abstractions.Data.Repositories;
 
 public interface ILastStatusRepository
 {
-    Task<LastStatus?> GetAsync(string resource, CancellationToken cancellationToken = default);
+    void Add(LastStatus entity);
 
-    Task AddOrUpdateAsync(string resource, CancellationToken cancellationToken = default);
+    Task<LastStatus?> GetAsync(string resource, CancellationToken cancellationToken = default);
 }

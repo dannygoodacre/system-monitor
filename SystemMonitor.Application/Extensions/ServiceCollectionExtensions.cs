@@ -48,9 +48,11 @@ public static class ServiceCollectionExtensions
 
             var eventRepository = serviceProvider.GetRequiredService<IEventRepository>();
 
+            var lastStatusRepository = serviceProvider.GetRequiredService<ILastStatusRepository>();
+
             var context = serviceProvider.GetRequiredService<IApplicationContext>();
 
-            services.AddScoped<ICheckResourceStatus>(_ => new CheckResourceStatusHandler(logger, resource, eventRepository, context));
+            services.AddScoped<ICheckResourceStatus>(_ => new CheckResourceStatusHandler(logger, resource, eventRepository, lastStatusRepository, context));
         }
 
         return services;

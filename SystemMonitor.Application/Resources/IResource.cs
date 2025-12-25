@@ -13,6 +13,11 @@ public interface IResource
     public int CheckFrequencyInSeconds { get; }
 
     /// <summary>
+    /// How often to send warning emails.
+    /// </summary>
+    public int EmailFrequencyInSeconds { get; }
+
+    /// <summary>
     /// Get the status of the resource.
     /// </summary>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while performing the operation.</param>

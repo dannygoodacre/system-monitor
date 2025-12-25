@@ -8,6 +8,8 @@ public class LastStatus
 
     public DateTime LoggedAt { get; set; }
 
+    public DateTime LastEmailSendAt { get; set; }
+
     public required bool IsOkay { get; set; }
 
     public required string Status { get; set; }

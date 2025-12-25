@@ -6,11 +6,9 @@ namespace SystemMonitor.Data.Repositories;
 
 public class LastStatusRepository(ApplicationContext context) : ILastStatusRepository
 {
+    public void Add(LastStatus entity)
+        => context.LastStatuses.Add(entity);
+
     public Task<LastStatus?> GetAsync(string resource, CancellationToken cancellationToken)
         => context.LastStatuses.FirstOrDefaultAsync(x => x.Resource == resource, cancellationToken);
-
-    public Task AddOrUpdateAsync(string resource, CancellationToken cancellationToken = default)
-    {
-
-    }
 }
