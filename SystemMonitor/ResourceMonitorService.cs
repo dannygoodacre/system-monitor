@@ -1,5 +1,4 @@
 using SystemMonitor.Application.Commands;
-using SystemMonitor.Core.Common;
 
 namespace SystemMonitor;
 
@@ -13,14 +12,11 @@ public class ResourceMonitorService(ILogger logger,
         {
             var statusResult = await checkResourceStatus.ExecuteAsync(cancellationToken);
 
-            if (statusResult.IsSuccess)
+            if (!statusResult.IsSuccess)
             {
-                await Task.Delay(TimeSpan.FromSeconds(checkResourceStatus.FrequencyInSeconds), cancellationToken);
-
-                continue;
+                logger.LogCritical("Could not verify the state of the resource '{Resource}'.", checkResourceStatus.ResourceName);
             }
-
-            if (statusResult.Status == Status.DomainError)
+            else if (!statusResult.Value.IsOkay && statusResult.Value.ShouldNotify)
             {
                 var sendEmailResult = await sendWarningEmail.ExecuteAsync(checkResourceStatus.ResourceName, cancellationToken);
 
@@ -28,10 +24,6 @@ public class ResourceMonitorService(ILogger logger,
                 {
                     logger.LogCritical("Could not send a warning email for the resource '{Resource}'.", checkResourceStatus.ResourceName);
                 }
-            }
-            else
-            {
-                logger.LogCritical("Could not verify the state of the resource '{Resource}'.", checkResourceStatus.ResourceName);
             }
 
             await Task.Delay(TimeSpan.FromSeconds(checkResourceStatus.FrequencyInSeconds), cancellationToken);

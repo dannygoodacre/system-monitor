@@ -6,11 +6,11 @@ public class LastStatus
 
     public required string Resource { get; set; }
 
-    public DateTime LoggedAt { get; set; }
+    public DateTime LastUpdatedAt { get; set; }
 
-    public DateTime LastEmailSendAt { get; set; }
+    public DateTime LastNotifiedAt { get; set; }
 
     public required bool IsOkay { get; set; }
 
-    public required string Status { get; set; }
+    public required string Message { get; set; }
 }

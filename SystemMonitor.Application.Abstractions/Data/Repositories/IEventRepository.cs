@@ -1,4 +1,3 @@
-
 using SystemMonitor.Domain.Entities;
 
 namespace SystemMonitor.Application.Abstractions.Data.Repositories;

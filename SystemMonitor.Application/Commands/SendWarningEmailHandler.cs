@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SystemMonitor.Application.Abstractions.Data.Repositories;
 using SystemMonitor.Application.Abstractions.Services;
+using SystemMonitor.Application.Extensions;
 using SystemMonitor.Configuration.Options;
 using SystemMonitor.Core.CommandQuery;
 using SystemMonitor.Core.Common;
@@ -11,7 +12,7 @@ namespace SystemMonitor.Application.Commands;
 internal sealed class SendWarningEmailHandler(ILogger<SendWarningEmailHandler> logger,
                                               IOptions<ContactOptions> options,
                                               IEmailService emailService,
-                                              IEventRepository eventRepository) : CommandHandler<SendWarningEmailCommand>(logger), ISendWarningEmail
+                                              ILastStatusRepository repository) : CommandHandler<SendWarningEmailCommand>(logger), ISendWarningEmail
 {
     protected override string CommandName => "Send Warning Email";
 
@@ -19,16 +20,18 @@ internal sealed class SendWarningEmailHandler(ILogger<SendWarningEmailHandler> l
     {
         logger.LogInformation("Command '{Command}' started.", CommandName);
 
-        var @event = await eventRepository.GetLatestAsync(command.Resource, cancellationToken);
+        var lastStatus = await repository.GetAsync(command.Resource, cancellationToken);
 
-        if (@event is null)
+        if (lastStatus is null)
         {
-            return Result.InternalError("No event found.");
+            return Result.InternalError("No status found.");
         }
 
-        var message = $"Issue detected for resource '{@event.Resource}':<br><pre><code>{@event.Status}</code></pre>";
+        var subject = $"System issue detected: {@lastStatus.Resource}";
 
-        await emailService.SendEmailAsync(options.Value.EmailAddress, $"System issue detected: {@event.Resource}", message);
+        var message = $"Issue detected for resource '{lastStatus.Resource}':<br><pre><code>{lastStatus.Message}</code></pre>";
+
+        await emailService.SendEmailAsync(options.Value.EmailAddress, subject, message);
 
         logger.LogInformation("Command '{Command}' completed, sending an email to: {Recipients}.", CommandName, options.Value.EmailAddress);
 

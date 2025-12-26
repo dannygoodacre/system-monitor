@@ -1,6 +1,8 @@
 using Microsoft.Extensions.Logging;
 using SystemMonitor.Application.Abstractions.Data;
 using SystemMonitor.Application.Abstractions.Data.Repositories;
+using SystemMonitor.Application.Abstractions.Models;
+using SystemMonitor.Application.Extensions;
 using SystemMonitor.Application.Resources;
 using SystemMonitor.Core.CommandQuery;
 using SystemMonitor.Core.Common;
@@ -12,7 +14,7 @@ internal sealed class CheckResourceStatusHandler(ILogger<CheckResourceStatusHand
                                                  IResource resource,
                                                  IEventRepository eventRepository,
                                                  ILastStatusRepository lastStatusRepository,
-                                                 IApplicationContext context) : CommandHandler<CheckResourceStatusCommand>(logger), ICheckResourceStatus
+                                                 IApplicationContext context) : CommandHandler<CheckResourceStatusCommand, ResourceStatus>(logger), ICheckResourceStatus
 {
     public int FrequencyInSeconds => resource.CheckFrequencyInSeconds;
 
@@ -20,7 +22,7 @@ internal sealed class CheckResourceStatusHandler(ILogger<CheckResourceStatusHand
 
     protected override string CommandName => $"Check Resource Status";
 
-    protected override async Task<Result> InternalExecuteAsync(CheckResourceStatusCommand command, CancellationToken cancellationToken)
+    protected override async Task<Result<ResourceStatus>> InternalExecuteAsync(CheckResourceStatusCommand command, CancellationToken cancellationToken)
     {
         var isCurrentlyOkay = await resource.IsOkayAsync(cancellationToken);
 
@@ -28,85 +30,53 @@ internal sealed class CheckResourceStatusHandler(ILogger<CheckResourceStatusHand
 
         if (lastStatus is null)
         {
-            // create first entry for resource
-
             lastStatus = new LastStatus
             {
                 Resource = resource.Name,
-                IsOkay = isCurrentlyOkay,
-                Status = isCurrentlyOkay
-                    ? ""
-                    : await resource.GetStatusInformationAsync(cancellationToken)
+                IsOkay = true,
+                Message = ""
             };
 
             lastStatusRepository.Add(lastStatus);
-
-            await SaveChangesAsync(1);
         }
 
         if (isCurrentlyOkay)
         {
-            // currently OK
-
             if (lastStatus.IsOkay)
             {
-                // previously OK
-                return Result.Success();
+                return Result.Success(ResourceStatus.Okay());
             }
 
-            // was NOT OK, now is OK
             lastStatus.IsOkay = true;
-            lastStatus.Status = "";
-            lastStatus.LoggedAt = DateTime.UtcNow;
+            lastStatus.Message = "";
+            lastStatus.LastUpdatedAt = DateTime.UtcNow;
 
-            await SaveChangesAsync(0);
+            await SaveChangesAsync(1);
 
-            return Result.Success();
+            return Result.Success(ResourceStatus.Okay());
         }
-
-        // currently NOT OK
-        if (!lastStatus.IsOkay)
-        {
-            // still NOT OK
-
-            // TODO: Send email if passed time limit.
-
-            var timeSinceLastAlert = (DateTime.UtcNow - lastStatus.LastEmailSendAt).TotalSeconds;
-
-            if (timeSinceLastAlert >= resource.EmailFrequencyInSeconds)
-            {
-                // TODO: Need to refactor how I'm sending emails. Do I return something special from this to indicate 'yes send', or send it directly here?
-            }
-
-            return Result.DomainError("Issue found with resource.");
-        }
-
-        // previously OK and now NOT OK
-
-        // send message and log event.
 
         var message = await resource.GetStatusInformationAsync(cancellationToken);
 
-        Logger.LogInformation("Command '{Command}' found an issue with resource '{Resource}': {Message}", CommandName, resource.Name, message);
-
-        eventRepository.Add(new Event
+        if (!lastStatus.IsOkay && lastStatus.SecondsSinceLastNotification() < resource.NotificationFrequencyInSeconds)
         {
-            Resource = resource.Name,
-            LoggedAt = DateTime.UtcNow,
-            Status = message
-        });
+            return Result.Success(ResourceStatus.NotOkay(message, false));
+        }
+
+        Logger.LogInformation("New issue found with resource '{Resource}': {Status}", resource.Name, message);
 
         lastStatus.IsOkay = false;
-        lastStatus.Status = message;
-        lastStatus.LoggedAt = DateTime.UtcNow;
-        lastStatus.LastEmailSendAt = DateTime.UtcNow;
+        lastStatus.Message = message;
+        lastStatus.LastUpdatedAt = DateTime.UtcNow;
+        lastStatus.LastNotifiedAt = DateTime.UtcNow;
 
         await SaveChangesAsync(1);
 
-        return Result.DomainError("Issue found with resource.");
+        return Result.Success(ResourceStatus.NotOkay(message, true));
     }
 
-    public Task<Result> ExecuteAsync(CancellationToken cancellationToken) => base.ExecuteAsync(new CheckResourceStatusCommand(), cancellationToken);
+    public Task<Result<ResourceStatus>> ExecuteAsync(CancellationToken cancellationToken)
+        => base.ExecuteAsync(new CheckResourceStatusCommand(), cancellationToken);
 
     private async Task SaveChangesAsync(int expectedChanges)
     {
@@ -121,7 +91,7 @@ internal sealed class CheckResourceStatusHandler(ILogger<CheckResourceStatusHand
 
 public interface ICheckResourceStatus
 {
-    Task<Result> ExecuteAsync(CancellationToken cancellationToken = default);
+    Task<Result<ResourceStatus>> ExecuteAsync(CancellationToken cancellationToken = default);
 
     int FrequencyInSeconds { get; }
 

@@ -15,7 +15,7 @@ public interface IResource
     /// <summary>
     /// How often to send warning emails.
     /// </summary>
-    public int EmailFrequencyInSeconds { get; }
+    public int NotificationFrequencyInSeconds { get; }
 
     /// <summary>
     /// Get the status of the resource.

@@ -8,6 +8,8 @@ internal sealed class ZPoolResource(ICommandService commandService) : IResource
 
     public int CheckFrequencyInSeconds => 60;
 
+    public int NotificationFrequencyInSeconds => 21600;
+
     public async Task<string> GetStatusInformationAsync(CancellationToken cancellationToken = default)
     {
         var result = await commandService.ExecuteAsync("zpool status tank",cancellationToken);
